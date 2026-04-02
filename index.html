@@ -1,78 +1,545 @@
-```html
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pagina di Prova - Strumenti Statici</title>
+    <title>Secure Vault - Login & Homepage</title>
     <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --surface-alt: #2c2c2c;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent: #bb86fc;
+            --accent-hover: #9b6cda;
+            --danger: #cf6679;
+            --danger-hover: #b35667;
+            --border: #333333;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            color: #333;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
-        .dashboard-container {
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 500px;
+
+        .container {
+            background-color: var(--surface-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             width: 100%;
+            max-width: 800px;
+            border: 1px solid var(--border);
         }
-        h1 {
-            color: #0056b3;
+
+        .login-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+            font-weight: 500;
+        }
+
+        .view {
+            display: none;
+        }
+        .view.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
             margin-bottom: 20px;
         }
-        p {
-            color: #6c757d;
-            margin-bottom: 30px;
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        input[type="password"], textarea {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        input[type="password"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 200px;
             line-height: 1.5;
         }
-        .action-btn {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        .action-btn:hover {
-            background-color: #0056b3;
-        }
-        #message-area {
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
             margin-top: 20px;
-            font-weight: bold;
-            color: #28a745;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            font-weight: 500;
+        }
+
+        button.primary {
+            background-color: var(--accent);
+            color: #000;
+        }
+        button.primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button.danger {
+            background-color: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+        button.danger:hover {
+            background-color: rgba(207, 102, 121, 0.1);
+        }
+
+        button.outline {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        button.outline:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .error-msg {
+            color: var(--danger);
+            margin-top: 10px;
+            font-size: 0.9em;
+            display: none;
+            text-align: center;
+        }
+
+        /* Homepage Specific Styles */
+        .homepage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .card {
+            background-color: var(--surface-alt);
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--surface-color);
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            max-width: 400px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <div class="dashboard-container">
-        <h1>Pagina di Prova</h1>
-        <p>Questa è un'interfaccia statica di base. Puoi utilizzare questo modello per iniziare a costruire i tuoi strumenti personalizzati, come grafici o dashboard per l'analisi dei dati.</p>
+    <div class="container" id="main-container">
         
-        <button class="action-btn" onclick="mostraMessaggio()">Testa il funzionamento</button>
-        
-        <div id="message-area"></div>
+        <!-- SETUP VIEW -->
+        <div id="setup-view" class="view login-container">
+            <h2>Configurazione Iniziale</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9em; margin-bottom: 20px;">
+                Crea una Master Password e inserisci il contenuto iniziale per il tuo vault.
+            </p>
+            <div class="input-group">
+                <label for="setup-pwd">Master Password</label>
+                <input type="password" id="setup-pwd" placeholder="Scegli una password forte">
+            </div>
+            <div class="input-group">
+                <label for="setup-content">Contenuto Iniziale</label>
+                <textarea id="setup-content" placeholder="Inserisci il tuo testo segreto qui..."></textarea>
+            </div>
+            <button class="primary" style="width: 100%;" onclick="handleSetup()">Cifra e Salva</button>
+            <div id="setup-error" class="error-msg"></div>
+        </div>
+
+        <!-- LOGIN VIEW -->
+        <div id="login-view" class="view login-container">
+            <h2 style="text-align: center; margin-bottom: 30px;">Accesso Sicuro</h2>
+            <div class="input-group">
+                <label for="login-pwd">Master Password</label>
+                <input type="password" id="login-pwd" placeholder="Inserisci la password" onkeypress="if(event.key === 'Enter') handleLogin()">
+            </div>
+            <button class="primary" onclick="handleLogin()" style="width: 100%; margin-bottom: 10px;">Accedi</button>
+            <div id="login-error" class="error-msg"></div>
+            
+            <div style="margin-top: 30px; text-align: center; border-top: 1px solid var(--border); padding-top: 15px;">
+                <button class="danger" style="font-size: 0.8em; padding: 6px 10px;" onclick="showResetModal()">Reset Completo Sistema</button>
+            </div>
+        </div>
+
+        <!-- HOMEPAGE VIEW -->
+        <div id="homepage-view" class="view">
+            <div class="homepage-header">
+                <h2>Dashboard Principale</h2>
+                <div class="btn-group" style="margin-top: 0;">
+                    <button class="outline" onclick="handleLock()">Blocca Sessione</button>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Welcome Section -->
+                <div class="card">
+                    <h3>Benvenuto nella tua Area Riservata</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9em; line-height: 1.6;">
+                        Questa è la tua homepage sicura. L'accesso è stato verificato e i tuoi dati sensibili sono stati caricati e decifrati in memoria. Ricorda che la sessione scadrà automaticamente dopo 10 minuti di inattività per garantire la massima sicurezza.
+                    </p>
+                </div>
+
+                <!-- Vault Section -->
+                <div class="card">
+                    <h3>Vault Segreto</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 15px;">
+                        Modifica il contenuto sottostante. Ogni salvataggio genera un nuovo vettore di inizializzazione (IV) e ricifra il testo.
+                    </p>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <textarea id="app-content"></textarea>
+                    </div>
+                    <div class="btn-group">
+                        <button class="primary" onclick="handleSave()">Salva Modifiche Vault</button>
+                    </div>
+                    <div id="app-msg" style="color: #4caf50; font-size: 0.9em; margin-top: 10px; display: none;">Contenuto cifrato e salvato con successo.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RESET MODAL -->
+    <div id="reset-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-top: 0; color: var(--danger);">Attenzione!</h3>
+            <p>Sei sicuro di voler resettare? Tutti i dati cifrati andranno persi per sempre.</p>
+            <div class="btn-group" style="justify-content: center; margin-top: 20px;">
+                <button class="outline" onclick="hideResetModal()">Annulla</button>
+                <button class="danger" onclick="executeReset()">Sì, elimina tutto</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        function mostraMessaggio() {
-            const messageDiv = document.getElementById('message-area');
-            messageDiv.innerHTML = 'Il codice JavaScript funziona correttamente! Pronto per integrare i dati.';
-        }
-    </script>
+        // --- CONSTANTS & STATE ---
+        const PBKDF2_ITERATIONS = 310000;
+        const SALT_LENGTH = 16;
+        const IV_LENGTH = 12;
+        const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000; // 10 minuti
 
-</body>
-</html>
+        let currentAesKey = null; // Unica variabile che tiene la chiave in memoria
+        let inactivityTimer = null;
+
+        // --- CRYPTO UTILS ---
+        
+        function buf2b64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+
+        function b642buf(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        async function deriveKey(password, salt) {
+            const enc = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey(
+                "raw",
+                enc.encode(password),
+                { name: "PBKDF2" },
+                false,
+                ["deriveKey"]
+            );
+            return await crypto.subtle.deriveKey(
+                {
+                    name: "PBKDF2",
+                    salt: salt,
+                    iterations: PBKDF2_ITERATIONS,
+                    hash: "SHA-256"
+                },
+                keyMaterial,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+            );
+        }
+
+        // --- CORE FUNCTIONS ---
+
+        async function handleSetup() {
+            const pwd = document.getElementById('setup-pwd').value;
+            const content = document.getElementById('setup-content').value;
+            const errorEl = document.getElementById('setup-error');
+            
+            if (!pwd) {
+                errorEl.textContent = "La password è obbligatoria.";
+                errorEl.style.display = "block";
+                return;
+            }
+
+            try {
+                const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
+                currentAesKey = await deriveKey(pwd, salt);
+
+                await performEncryptionAndSave(content, salt, currentAesKey);
+
+                document.getElementById('setup-pwd').value = '';
+                document.getElementById('setup-content').value = '';
+                errorEl.style.display = "none";
+
+                startSession(content);
+
+            } catch (e) {
+                console.error(e);
+                errorEl.textContent = "Errore durante la creazione del vault.";
+                errorEl.style.display = "block";
+            }
+        }
+
+        async function handleLogin() {
+            const errorEl = document.getElementById('login-error');
+            errorEl.style.display = "none";
+            
+            const lockoutUntil = parseInt(localStorage.getItem('vaultLockout') || '0');
+            if (Date.now() < lockoutUntil) {
+                const waitSecs = Math.ceil((lockoutUntil - Date.now()) / 1000);
+                errorEl.textContent = `Troppi tentativi. Riprova tra ${waitSecs} secondi.`;
+                errorEl.style.display = "block";
+                return;
+            }
+
+            const pwd = document.getElementById('login-pwd').value;
+            if (!pwd) return;
+
+            try {
+                const vaultB64 = localStorage.getItem('secureVault');
+                if (!vaultB64) throw new Error("Vault non trovato");
+                
+                const vaultJson = JSON.parse(atob(vaultB64));
+                const salt = b642buf(vaultJson.salt);
+                const iv = b642buf(vaultJson.iv);
+                const ciphertext = b642buf(vaultJson.data);
+
+                const tempKey = await deriveKey(pwd, salt);
+
+                const decryptedBuffer = await crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: iv },
+                    tempKey,
+                    ciphertext
+                );
+
+                const dec = new TextDecoder();
+                const content = dec.decode(decryptedBuffer);
+
+                currentAesKey = tempKey;
+                
+                localStorage.removeItem('vaultAttempts');
+                localStorage.removeItem('vaultLockout');
+
+                document.getElementById('login-pwd').value = '';
+                
+                startSession(content);
+
+            } catch (e) {
+                let attempts = parseInt(localStorage.getItem('vaultAttempts') || '0');
+                attempts++;
+                
+                let penalty = Math.min(Math.pow(2, attempts), 64);
+                let newLockout = Date.now() + (penalty * 1000);
+                
+                localStorage.setItem('vaultAttempts', attempts);
+                localStorage.setItem('vaultLockout', newLockout);
+
+                errorEl.textContent = "Credenziali errate o dati corrotti.";
+                errorEl.style.display = "block";
+                
+                document.getElementById('login-pwd').value = '';
+            }
+        }
+
+        async function handleSave() {
+            if (!currentAesKey) return forceLock();
+
+            const content = document.getElementById('app-content').value;
+            const vaultB64 = localStorage.getItem('secureVault');
+            const vaultJson = JSON.parse(atob(vaultB64));
+            const salt = b642buf(vaultJson.salt);
+
+            try {
+                await performEncryptionAndSave(content, salt, currentAesKey);
+                
+                const msg = document.getElementById('app-msg');
+                msg.style.display = 'block';
+                setTimeout(() => msg.style.display = 'none', 3000);
+            } catch (e) {
+                console.error("Errore salvataggio", e);
+                alert("Errore critico durante il salvataggio.");
+            }
+        }
+
+        async function performEncryptionAndSave(content, saltBuffer, key) {
+            const enc = new TextEncoder();
+            const dataBuffer = enc.encode(content);
+            
+            const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
+            
+            const ciphertext = await crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv },
+                key,
+                dataBuffer
+            );
+
+            const vaultObj = {
+                salt: buf2b64(saltBuffer),
+                iv: buf2b64(iv),
+                data: buf2b64(ciphertext)
+            };
+            
+            const finalBlobBase64 = btoa(JSON.stringify(vaultObj));
+            localStorage.setItem('secureVault', finalBlobBase64);
+        }
+
+        function handleLock() {
+            forceLock();
+        }
+
+        function forceLock() {
+            // AZZERAMENTO MEMORIA E CAMPI
+            currentAesKey = null;
+            document.getElementById('app-content').value = '';
+            document.getElementById('setup-pwd').value = '';
+            document.getElementById('setup-content').value = '';
+            document.getElementById('login-pwd').value = '';
+            
+            stopActivityTimer();
+            showView('login-view');
+            
+            // Ripristina l'ampiezza per il container di login
+            document.getElementById('main-container').style.maxWidth = '400px';
+        }
+
+        // --- INACTIVITY TIMER ---
+        
+        function resetActivityTimer() {
+            if (!currentAesKey) return; 
+            
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                forceLock();
+                alert("Sessione scaduta: Vault bloccato per inattività (10 minuti).");
+            }, INACTIVITY_TIMEOUT_MS);
+        }
+
+        function startSession(content) {
+            document.getElementById('app-content').value = content;
+            
+            // Allarga il container per la homepage
+            document.getElementById('main-container').style.maxWidth = '800px';
+            showView('homepage-view');
+            
+            window.addEventListener('mousemove', resetActivityTimer);
+            window.addEventListener('keydown', resetActivityTimer);
+            window.addEventListener('click', resetActivityTimer);
+            resetActivityTimer();
+        }
+
+        function stopActivityTimer() {
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            window.removeEventListener('mousemove', resetActivityTimer);
+            window.removeEventListener('keydown', resetActivityTimer);
+            window.removeEventListener('click', resetActivityTimer);
+        }
+
+
+        // --- UI UTILS & MODAL ---
+
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        function showResetModal() {
+            document.getElementById('reset-modal').classList.add('active');
+        }
+
+        function hideResetModal() {
+            document.getElementById('reset-modal').classList.remove('active');
+        }
+
+        function executeReset() {
+            localStorage.removeItem('secureVault');
+            localStorage.removeItem('vaultAttempts');
+            localStorage.removeItem('vaultLockout');
+            hideResetModal();
+            forceLock();
+            checkInitial
+
 ```
